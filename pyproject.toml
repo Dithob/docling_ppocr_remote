@@ -8,6 +8,9 @@ version = "0.1.0"
 description = "Docling plugin for remote PP-OCR"
 readme = "README.md"
 requires-python = ">=3.8"
+authors = [
+  { name="wujue", email="jgwujue@gamil.com" }
+]
 
 [project.entry-points."docling"]
 ppocr_remote = "docling_ppocr_remote.plugin"
