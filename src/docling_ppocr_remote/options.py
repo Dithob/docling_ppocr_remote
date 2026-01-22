@@ -1,10 +1,9 @@
+import os
 from __future__ import annotations
-from typing import ClassVar, Dict, Literal, Optional
 from typing import Annotated, Any, ClassVar, Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, Field
 # 你需要继承 Docling 的 OcrOptions
 from docling.datamodel.pipeline_options import OcrOptions  # 具体路径按版本调整
-import os
 
 
 class RemotePpOcrOptions(OcrOptions):
@@ -23,9 +22,6 @@ class RemotePpOcrOptions(OcrOptions):
             else {}
         )
     )
-    kind: ClassVar[Literal["ppocr_remote"]] = "ppocr_remote"
-    url: str = Field(..., description="Remote PP-OCRv5 endpoint")
-    headers: Dict[str, str] = Field(default_factory=dict)
     timeout: float = 30.0
     concurrency: int = 4
     lang: list[str] = Field(default_factory=lambda: ["english","chinese"])
