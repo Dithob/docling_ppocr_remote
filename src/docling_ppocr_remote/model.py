@@ -1,7 +1,8 @@
 # docling_ppocr_remote/model.py
 from __future__ import annotations
-import base64, io
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import base64
+import io
+from concurrent.futures import ThreadPoolExecutor
 from typing import Iterable, List, Optional, Type
 
 import httpx
@@ -21,6 +22,11 @@ def _pil_to_b64(img: Image.Image, fmt="JPEG", quality=90) -> str:
     if fmt.upper() == "JPEG":
         save_kwargs["quality"] = quality
         save_kwargs["optimize"] = True
+        if img.mode not in ("RGB", "L"):
+            img = img.convert("RGB")
+    else:
+        if img.mode not in ("RGB", "RGBA", "L"):
+            img = img.convert("RGB")
     img.save(buf, format=fmt, **save_kwargs)
     return base64.b64encode(buf.getvalue()).decode("utf-8")
 
@@ -40,12 +46,28 @@ class RemotePpOcrModel(BaseOcrModel):
     def get_options_type(cls) -> Type[RemotePpOcrOptions]:
         return RemotePpOcrOptions
 
+    def _rapidocr_defaults(self) -> dict:
+        return {
+            "textDetLimitSideLen": 736,
+            "textDetLimitType": "max",
+            "textDetThresh": 0.3,
+            "textDetBoxThresh": 0.6,
+            "textDetUnclipRatio": 1.5,
+            "textRecScoreThresh": 0.5,
+            "useTextlineOrientation": True,
+            "useDocOrientationClassify": True,
+        }
+
     def _call_remote(self, img: Image.Image) -> dict:
         payload = {
             "fileType": self._opt.fileType,
             "visualize": self._opt.visualize,
             # 下面把可选参数按“非 None 才传”拼进去
         }
+        if self._opt.rapidocr_compat:
+            for key, value in self._rapidocr_defaults().items():
+                if getattr(self._opt, key) is None:
+                    payload[key] = value
         for k in [
             "useDocOrientationClassify","useDocUnwarping","useTextlineOrientation",
             "textDetLimitSideLen","textDetLimitType","textDetThresh","textDetBoxThresh",
@@ -56,7 +78,11 @@ class RemotePpOcrModel(BaseOcrModel):
                 payload[k] = v
 
         if self._opt.send_mode == "base64":
-            payload["file"] = _pil_to_b64(img, fmt="JPEG")
+            payload["file"] = _pil_to_b64(
+                img,
+                fmt=self._opt.image_format,
+                quality=self._opt.jpeg_quality,
+            )
         else:
             raise ValueError("send_mode=url requires a reachable URL; prefer base64 in docling-serve")
 
@@ -137,12 +163,18 @@ class RemotePpOcrModel(BaseOcrModel):
             )
             rect = BoundingRectangle.from_bounding_box(bbox)
 
+            text_value = txt
+            orig_value = txt
+            if self._opt.rapidocr_compat:
+                text_value = txt.strip()
+                orig_value = txt
+
             out.append(
                 TextCell(
                     index=i,
-                    text=txt,
-                    orig=txt,  # RapidOCR 也是这么填的
-                    confidence=conf,  # 可选，但强烈建议填
+                    text=text_value,
+                    orig=orig_value,
+                    confidence=conf,
                     from_ocr=True,
                     rect=rect,
                 )
