@@ -111,6 +111,8 @@ If you’re using `docling-serve` as a server, send:
     "allow_external_plugins": true,
     "enable_remote_services": true,
     "do_ocr": true,
+    "do_table_structure": true,
+    "ocr_engine": "ppocr_remote",
     "ocr_options": {
       "kind": "ppocr_remote",
       "url": "https://your-ppocrv5/api/ocr",
@@ -126,6 +128,7 @@ If you’re using `docling-serve` as a server, send:
 ```
 
 Make sure the server is started with external plugin support and the plugin is installed in its environment.
+If `ocr_options` are omitted, the remote engine cannot contact your service, and results can diverge from RapidOCR.
 
 ------
 
@@ -137,6 +140,9 @@ Make sure the server is started with external plugin support and the plugin is i
 | `headers`               | dict    | Custom HTTP headers (e.g., auth)       |
 | `fileType`              | int     | 0 = PDF, 1 = image                     |
 | `visualize`             | bool    | Whether to return annotated image      |
+| `image_format`          | str     | Image encoding for upload (`PNG`/`JPEG`) |
+| `jpeg_quality`          | int     | JPEG quality if using `JPEG`           |
+| `rapidocr_compat`       | bool    | Match RapidOCR-style text normalization and defaults |
 | other PP-OCR parameters | various | Control detection/recognition behavior |
 
 Check your remote OCR API documentation for full parameter support.
