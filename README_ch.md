@@ -98,6 +98,8 @@ print(result.document.export_to_markdown())
     "allow_external_plugins": true,
     "enable_remote_services": true,
     "do_ocr": true,
+    "do_table_structure": true,
+    "ocr_engine": "ppocr_remote",
     "ocr_options": {
       "kind": "ppocr_remote",
       "url": "https://你的-ppocr-api/ocr",
@@ -113,18 +115,22 @@ print(result.document.export_to_markdown())
 ```
 
 注意在服务端启动时需确认插件已正确安装到服务环境。
+若省略 `ocr_options`，远程引擎无法调用你的 OCR 服务，结果会与 RapidOCR 有明显差异。
 
 ------
 
 ## 📘 参数说明
 
-| 参数        | 类型 | 含义                                        |
-| ----------- | ---- | ------------------------------------------- |
-| `url`       | str  | 远程 OCR 接口地址                           |
-| `headers`   | dict | HTTP 请求头（用于认证等）                   |
-| `fileType`  | int  | 输入文件类型（0=PDF, 1=图像）               |
-| `visualize` | bool | 是否返回可视化结果                          |
-| 其他        | 可选 | PP-OCR API 支持的参数（如阈值、方向分类等） |
+| 参数              | 类型 | 含义                                        |
+| ----------------- | ---- | ------------------------------------------- |
+| `url`             | str  | 远程 OCR 接口地址                           |
+| `headers`         | dict | HTTP 请求头（用于认证等）                   |
+| `fileType`        | int  | 输入文件类型（0=PDF, 1=图像）               |
+| `visualize`       | bool | 是否返回可视化结果                          |
+| `image_format`    | str  | 上传图片编码格式（`PNG`/`JPEG`）            |
+| `jpeg_quality`    | int  | 使用 `JPEG` 时的质量参数                    |
+| `rapidocr_compat` | bool | 对齐 RapidOCR 的文本规范化与默认阈值行为   |
+| 其他              | 可选 | PP-OCR API 支持的参数（如阈值、方向分类等） |
 
 上述配置将被发送为 HTTP 请求体的一部分，以远程完成 OCR 识别。
 
